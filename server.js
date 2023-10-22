@@ -18,18 +18,6 @@ cfonts.say('Company|Database!', {
 	env: 'node'                
 });
 
-inquirer
-    .prompt([
-        {
-            type: 'list',
-            name: 'Menu',
-            message: 'What would you like to do?',
-            choices:['View All Emplyees', 'Add Employess', 'Update Emplyee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department'],
-        },
-    ]).then((res) =>
-    {
-        console.log(res);
-    })
 
     // necessary libraries (e.g., inquirer, mysql)
 
@@ -41,9 +29,22 @@ function main() {
     // Based on user choice, call the appropriate functions to handle database operations
     // Display results or error messages
     // Repeat the loop until the user chooses to exit
+    inquirer
+    .prompt([
+        {
+            type: 'list',
+            name: 'Menu',
+            message: 'What would you like to do?',
+            choices:['View All Employees', 'Add Employees', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit'],
+        },
+    ]).then((res) =>
+    {
+        console.log(res);
+    })
   }
   
   // Implement functions to handle database operations (view, add, update)
   
-  // Start the application by calling the main function
   
+  // Start the application by calling the main function
+  main();
