@@ -1,12 +1,30 @@
 const inquirer =require('inquirer');
-const mysql = require('')
+
+//use cfonts to put the ascii on the top of the database page//
+const cfonts = require('cfonts');
+const mysql = require('mysql2');
+
+cfonts.say('Company|Database!', {
+	font: 'block',              
+	align: 'left',             
+	colors: ['system'],         
+	background: 'transparent',  
+	letterSpacing: 1,           
+	space: true,               
+	maxLength: '0',             
+	gradient: false,            
+	independentGradient: false,
+	transitionGradient: false, 
+	env: 'node'                
+});
+
 inquirer
     .prompt([
         {
             type: 'list',
-            name: 'food',
-            message: 'what would you like to eat?',
-            choices:['pizza', 'waffles', 'burger'],
+            name: 'Menu',
+            message: 'What would you like to do?',
+            choices:['View All Emplyees', 'Add Employess', 'Update Emplyee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department'],
         },
     ]).then((res) =>
     {
