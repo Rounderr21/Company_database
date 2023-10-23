@@ -1,19 +1,26 @@
-
-
 DROP DATABASE IF EXISTS company_db;
 CREATE DATABASE company_db;
 
 USE company_db;
 
-CREATE TABLE products(
+CREATE TABLE employees(
   id INT NOT NULL,
-  product_name VARCHAR(30) NOT NULL,
-  category_name VARCHAR(100) NOT NULL,
-  price INT NOT NULL,
-  in_stock BOOLEAN
+  first_name VARCHAR(30) NOT NULL,
+  last_name VARCHAR(30) NOT NULL,
+  title VARCHAR(100) NOT NULL,
+  department VARCHAR(30) NOT NULL,
+  salary INT NOT NULL,
+  manager VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE categories(
+CREATE TABLE departments(
   id INT NOT NULL,
-  category_name VARCHAR(30) NOT NULL
+  department_name VARCHAR(30) NOT NULL
 );
+
+CREATE TABLE roles(
+  id INT NOT NULL,
+  title VARCHAR(100) NOT NULL,
+  department VARCHAR(30) NOT NULL,
+  salary INT NOT NULL
+)
