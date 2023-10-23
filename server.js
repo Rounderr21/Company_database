@@ -25,15 +25,6 @@ const db = mysql.createConnection({
     database: 'company_db',
 });
 
-db.connect((err) => {
-    if (err)
-    {
-        console.error(err);
-        return;
-    }
-    console.log('Connected to the database.');
-});
-
 function runQuery(query, callback) {
     db.query(query, (error, results) => {
       if (error) {
@@ -62,15 +53,19 @@ function runQuery(query, callback) {
     return `${header}\n${'-'.repeat(header.length)}\n${rows.join('\n')}`;
   }
 
-  function fetchEmployeeNames(callback) {
-    const query = 'SELECT full_name FROM employees';
+  function employeeFirstNames(callback) {
+    const query = 'SELECT first_name FROM employees';
   
     runQuery(query, (results) => {
-      const employeeNames = results.map((row) => row.full_name);
-      callback(employeeNames);
-      console.log(callback(employeeNames));
+      // Extract first names from the SQL result and store them in an array
+      const employeeFirstNames = results.map((row) => row.first_name);
+      
+      // Call the provided callback function with the array of employee first names
+      callback(employeeFirstNames);
     });
+    console.log(callback(employeeFirstNames));
   }
+  
 
 // Main application loop //FINSHED
 function main() {
@@ -166,8 +161,9 @@ function main() {
             type: 'list',
             name: 'manager',
             message: "Who is the employee's manager?",
-            choices: [fetchEmployeeNames, 'none'] //need to fix this line of code
-        },
+            choices: [employeeFirstNames, 'None'], // Include a 'None' option
+          },
+          console.log(employeeFirstNames)
     ]).then((res) =>
     {
         console.log(`Added ${res.firstname} ${res.lastname} to the database.`)
