@@ -1,4 +1,4 @@
-const inquirer =require('inquirer');
+const inquirer = require('inquirer');
 const cfonts = require('cfonts');
 const mysql = require('mysql2');
 
@@ -18,23 +18,22 @@ cfonts.say('Company|Database!', {
 });
 
 //connecting to the database of the company
-const db = mysql.createConnection({
+const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'bootcamp',
     database: 'company_db',
 });
 
-function runQuery(query, callback) {
-    db.query(query, (error, results) => {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      callback(results);
-    });
-  }
-  
+// Test connection to database and makes sure we are connected or not
+connection.connect((err) => {
+	if (err) {
+		console.error('Database connection error: ' + err.stack);
+		return;
+	}
+	console.log('Connected to database');
+});
+
   function generateTable(data) {
     if (!Array.isArray(data) || data.length === 0) {
       return 'No data to display.';
@@ -52,20 +51,6 @@ function runQuery(query, callback) {
     // Combine the header and rows
     return `${header}\n${'-'.repeat(header.length)}\n${rows.join('\n')}`;
   }
-
-  function employeeFirstNames(callback) {
-    const query = 'SELECT first_name FROM employees';
-  
-    runQuery(query, (results) => {
-      // Extract first names from the SQL result and store them in an array
-      const employeeFirstNames = results.map((row) => row.first_name);
-      
-      // Call the provided callback function with the array of employee first names
-      callback(employeeFirstNames);
-    });
-    console.log(callback(employeeFirstNames));
-  }
-  
 
 // Main application loop //FINSHED
 function main() {
@@ -129,48 +114,103 @@ function main() {
 
   //displaying all employees within the company //FINSHED
   function viewAllEmployees(){
-    const employees = "SELECT * FROM employees";
-    runQuery(employees, function(result){
-        const table = generateTable(result);
-        console.log(`\n${table}\n`);
-        main();
+    const query = "SELECT * FROM employees";
+    connection.query(query, function (err, result) {
+      if (err) throw err;
+      const table = generateTable(result);
+      console.log(`\n${table}\n`);
+      main();
     });
   }
 
-  //adding an emplyee to the database //MUST STILL FINISH
-  function addEmployee(){
-    inquirer
-    .prompt([
-        {
-            type: 'type',
-            name: 'firstname',
-            message: 'What is the Employees first name?'
-        },
-        {
-            type: 'type',
-            name: 'lastname',
-            message: 'What is the Employees last name?'
-        },
-        {
-            type: 'list',
-            name: 'role',
-            message: 'What is the employees role?',
-            choices: ["Lead Technician","Service Technician", "Project Coordinator", "Project Manager", "Rental Coordinator", "Rental Manager"]
-        },
-        {
-            type: 'list',
-            name: 'manager',
-            message: "Who is the employee's manager?",
-            choices: [employeeFirstNames, 'None'], // Include a 'None' option
-          },
-          console.log(employeeFirstNames)
-    ]).then((res) =>
-    {
-        console.log(`Added ${res.firstname} ${res.lastname} to the database.`)
-        console.log(res);
-    })
-    //main();
-  }
+  //adding a new employee to the company database //FINISHED
+function addEmployee() {
+  connection.promise()
+      .query('SELECT title FROM roles')
+      .then(([roles]) => {
+          const roleChoices = roles.map((role) => ({
+              name: role.title,
+          }));
+
+          return connection.promise()
+              .query('SELECT first_name, last_name FROM employees')
+              .then(([employees]) => {
+                  const employeeNames = employees.map((employee) => ({
+                      name: employee.first_name + " " + employee.last_name,
+                  }));
+
+                  return connection.promise()
+                      .query('SELECT department_name FROM departments')
+                      .then(([departments]) => {
+                          const departmentNames = departments.map((department) => ({
+                              name: department.department_name,
+                          }));
+
+                          inquirer
+                              .prompt([
+                                  {
+                                      type: 'input',
+                                      name: 'firstname',
+                                      message: 'What is the employee\'s first name?'
+                                  },
+                                  {
+                                      type: 'input',
+                                      name: 'lastname',
+                                      message: 'What is the employee\'s last name?'
+                                  },
+                                  {
+                                      type: 'list',
+                                      name: 'title',
+                                      message: 'What is the employee\'s role?',
+                                      choices: roleChoices,
+                                  },
+                                  {
+                                      type: 'list',
+                                      name: 'department',
+                                      message: 'What is the employee\'s department?',
+                                      choices: departmentNames,
+                                  },
+                                  {
+                                    type: 'input',
+                                    name: 'salary',
+                                    message: 'What is the employee\'s salary?',
+                                    validate: function (value) {
+                                        const parsedSalary = parseInt(value, 10);
+                                        if (isNaN(parsedSalary) || parsedSalary < 0) {
+                                            return 'Please enter a valid positive integer for salary.';
+                                        }
+                                        return true;
+                                    }
+                                },
+                                  {
+                                      type: 'list',
+                                      name: 'manager',
+                                      message: "Who is the employee's manager?",
+                                      choices: [...employeeNames, 'null'],
+                                  },
+                              ])
+                              .then((res) => {
+                                  const first_name = res.firstname;
+                                  const last_name = res.lastname;
+                                  const title = res.title;
+                                  const department = res.department;
+                                  const salary = parseInt(res.salary, 10);
+                                  const manager = res.manager;
+
+                                  // Adjust the INSERT statement to match the number of columns and values
+                                  const query = `INSERT INTO employees (first_name, last_name, title, department, salary, manager) VALUES (?, ?, ?, ?, ?, ?)`;
+
+                                  connection.query(query, [first_name, last_name, title, department, salary, manager], (err, res) => {
+                                      if (err) throw err;
+                                      console.log(`Employee ${first_name} ${last_name} added successfully!`);
+                                      main();
+                                  });
+                              });
+                      });
+              });
+      });
+}
+
 
 //updating employee role within the company //MUST STILL FINISH
   function updateRole(){
@@ -198,11 +238,12 @@ function main() {
 
   //Displaying all roles that are within a company //FINSIHED
   function viewAllRoles(){
-    const employees = "SELECT * FROM roles";
-    runQuery(employees, function(result){
-        const table = generateTable(result);
-        console.log(`\n${table}\n`);
-        main();
+    const query = "SELECT * FROM roles";
+    connection.query(query, function (err, result) {
+      if (err) throw err;
+      const table = generateTable(result);
+      console.log(`\n${table}\n`);
+      main();
     });
   }
 
@@ -237,12 +278,13 @@ function main() {
   }
   
   //displaying all departments in the database //FINSIHED
-  function viewAllDepartments(){
-    const employees = "SELECT * FROM departments";
-    runQuery(employees, function(result){
-        const table = generateTable(result);
-        console.log(`\n${table}\n`);
-        main();
+  function viewAllDepartments() {
+    const query = "SELECT * FROM departments";
+    connection.query(query, function (err, result) {
+      if (err) throw err;
+      const table = generateTable(result);
+      console.log(`\n${table}\n`);
+      main();
     });
   }
   
