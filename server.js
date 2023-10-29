@@ -61,7 +61,7 @@ function main() {
             type: 'list',
             name: 'Menu',
             message: 'What would you like to do?',
-            choices:['View All Employees', 'Add Employees', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit'],
+            choices:['View All Employees', 'Add Employees', 'Update Employee Role', 'View All Roles', 'Add A Role', 'View All Departments', 'Add Department', 'Quit'],
         },
     ]).then((res) =>
     {
@@ -90,7 +90,7 @@ function main() {
         viewAllRoles();
         break;
 
-      case 'Add a role':
+      case 'Add A Role':
         addRole();
         break;
 
@@ -272,36 +272,46 @@ function updateRole() {
     });
   }
 
-  //adding new role to the company database //MUST STILL FINISH
-  function addRole(){
-    inquirer
-    .prompt([
-        {
-            type: 'type',
-            name: 'role',
-            message: 'What is the name of the role?'
-        },
-        {
-            type: 'type',
-            name: 'salary',
-            message: 'What is the salary of the role?'
-        },
-        {
-            type: 'list',
-            name: 'department',
-            message: 'Which department does the role belong to?',
-            choices: ['Service', 'Sales', 'Rental'],
-        },
-    ]).then((res) =>
-    {
-        //tells you the name of what was added to the database
-        console.log(`Added ${res.role} to the database.`)
-    })
+  //adding new role to the company database
+//adding new role to the company database
+function addRole() {
+  // Fetch department choices from the database
+  connection.promise()
+      .query('SELECT department_name FROM departments')
+      .then(([departments]) => {
+          const departmentChoices = departments.map((department) => department.department_name);
 
-    //MUST ADD THE INFORMATION ABOVE TO THE DATABASE FORE REAL THOU DONT FORGET THIS PART
-        main();
-  }
-  
+          inquirer
+              .prompt([
+                  {
+                      type: 'input',
+                      name: 'role',
+                      message: 'What is the name of the role?'
+                  },
+                  {
+                      type: 'input',
+                      name: 'salary',
+                      message: 'What is the salary of the role?'
+                  },
+                  {
+                      type: 'list',
+                      name: 'department',
+                      message: 'Which department does the role belong to?',
+                      choices: departmentChoices,
+                  },
+              ])
+              .then((res) => {
+                  // Add the role information to the database
+                  const query = `INSERT INTO roles (title, salary, department) VALUES (?, ?, ?)`;
+                  connection.query(query, [res.role, res.salary, res.department], (err, result) => {
+                      if (err) throw err;
+                      console.log(`Added ${res.role} to the database.`);
+                      main();
+                  });
+              });
+      });
+}
+
   //displaying all departments in the database //FINSIHED
   function viewAllDepartments() {
     const query = "SELECT * FROM departments";
@@ -313,24 +323,26 @@ function updateRole() {
     });
   }
   
-  //adding a new department to database //MUST STILL FINISH
-  function addDepartment(){
-    inquirer
-    .prompt([
-        {
-            type: 'type',
-            name: 'department',
-            message: 'What is the name of the department?'
-        },
-    ]).then((res) =>
-    {
-        //tells you the name of what was added to the database
-        console.log(`Added ${res.department} to the database.`)
-    })
+  //adding a new department to database //FINISHED
+function addDepartment() {
+  inquirer
+      .prompt([
+          {
+              type: 'input',
+              name: 'department',
+              message: 'What is the name of the department?'
+          },
+      ]).then((res) => {
+          // Add the department information to the database
+          const query = `INSERT INTO departments (department_name) VALUES (?)`;
+          connection.query(query, [res.department], (err, result) => {
+              if (err) throw err;
+              console.log(`Added ${res.department} to the database.`);
+              main();
+          });
+      });
+}
 
-    //MUST ADD THE DEPARTMENT TO THE DATABASE FORE REAL THOU DONT FORGET THIS PART
-        main();
-  }
 
   //exiting the console database //FINISHED
   function exitConsole(){
