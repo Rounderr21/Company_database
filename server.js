@@ -52,7 +52,7 @@ connection.connect((err) => {
     return `${header}\n${'-'.repeat(header.length)}\n${rows.join('\n')}`;
   }
 
-// Main application loop //FINSHED
+// Main application loop
 function main() {
 
     inquirer
@@ -73,7 +73,6 @@ function main() {
   //function to handle what choice the user has asked for //FINSIHED
   function handleUserChoice(choice) {
     const userChoice = choice.Menu;
-    //console.log('User choice:', userChoice);
     switch (userChoice) {
       case 'View All Employees':
         viewAllEmployees();
@@ -212,29 +211,55 @@ function addEmployee() {
 }
 
 
-//updating employee role within the company //MUST STILL FINISH
-  function updateRole(){
-    inquirer
-    .prompt([
-        {
-            type: 'list',
-            name: 'name',
-            message: "Which employee's role do you want to update?",
-            choices: [fetchEmployeeNames, 'none'] //need to fix this line of code
-        },
-        {
-            type: 'list',
-            name: 'role',
-            message: 'Which role do you want to assign the selected employee?',
-            choices: []//roles should be in here from the database//
-        },
-    ]).then((res) =>
-    {
-        console.log("Updated employee's role.");
-        console.log(res);
-    })
-    main();
-  }
+//updating employee role within the company //FINSHED
+function updateRole() {
+  connection.promise()
+      .query('SELECT title FROM roles')
+      .then(([roles]) => {
+          const roleChoices = roles.map((role) => ({
+              name: role.title,
+          }));
+
+          connection.promise()
+              .query('SELECT first_name, last_name FROM employees')
+              .then(([employees]) => {
+                  const employeeNames = employees.map((employee) => ({
+                      name: employee.first_name + " " + employee.last_name,
+                  }));
+
+                  inquirer
+                      .prompt([
+                          {
+                              type: 'list',
+                              name: 'employee',
+                              message: "Which employee's role do you want to update?",
+                              choices: employeeNames,
+                          },
+                          {
+                              type: 'list',
+                              name: 'role',
+                              message: 'Which role do you want to assign the selected employee?',
+                              choices: roleChoices,
+                          },
+                      ])
+                      .then((res) => {
+                          const title = res.role;
+                          const first_name = res.employee.split(' ')[0];
+                          const last_name = res.employee.split(' ')[1];
+
+                          // Update the employee's role using an UPDATE query
+                          const query = 'UPDATE employees SET title = ? WHERE first_name = ? AND last_name = ?';
+
+                          connection.query(query, [title, first_name, last_name], (err, res) => {
+                              if (err) throw err;
+                              console.log(`Updated employee's role within the company.`);
+                              main();
+                          });
+                      });
+              });
+      });
+}
+
 
   //Displaying all roles that are within a company //FINSIHED
   function viewAllRoles(){
