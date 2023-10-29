@@ -20,8 +20,7 @@ Pushed out DB files, Javascript, and README when finishing any coding edits, as 
 # Project is located at this URL:
 https://github.com/Rounderr21/Company_database
 
-Screenshot of the Project:
-
+# Screenshot of the Project:
 ![Alt text](./images/FrontPage.png "First look at application in use")
 ![Alt text](./images/addedEmployee.png "Added an employee to the database")
 ![Alt text](./images/department&RoleTables.png "Showing tables for departments and roles")
